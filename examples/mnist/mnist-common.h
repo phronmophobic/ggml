@@ -8,6 +8,7 @@
 #include "ggml-alloc.h"
 #include "ggml-backend.h"
 #include "ggml.h"
+#include "ggml-metal.h"
 
 #define MNIST_NTRAIN          60000
 #define MNIST_NTEST           10000
@@ -117,19 +118,20 @@ struct mnist_model {
     ggml_backend_buffer_t buf_compute = nullptr;
 
     mnist_model(const std::string & backend_name) {
-        ggml_backend_dev_t dev = ggml_backend_dev_by_name(backend_name.c_str());
-        if (dev == nullptr) {
-            fprintf(stderr, "%s: ERROR: backend %s not found, available:\n", __func__, backend_name.c_str());
-            for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
-                ggml_backend_dev_t this_dev = ggml_backend_dev_get(i);
-                fprintf(stderr, "  - %s (%s)\n", ggml_backend_dev_name(this_dev), ggml_backend_dev_description(this_dev));
-            }
-            exit(1);
-        }
+        // ggml_backend_dev_t dev = ggml_backend_dev_by_name(backend_name.c_str());
+        // if (dev == nullptr) {
+        //     fprintf(stderr, "%s: ERROR: backend %s not found, available:\n", __func__, backend_name.c_str());
+        //     for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+        //         ggml_backend_dev_t this_dev = ggml_backend_dev_get(i);
+        //         fprintf(stderr, "  - %s (%s)\n", ggml_backend_dev_name(this_dev), ggml_backend_dev_description(this_dev));
+        //     }
+        //     exit(1);
+        // }
 
-        fprintf(stderr, "%s: using %s (%s) backend\n", __func__, ggml_backend_dev_name(dev), ggml_backend_dev_description(dev));
+        // fprintf(stderr, "%s: using %s (%s) backend\n", __func__, ggml_backend_dev_name(dev), ggml_backend_dev_description(dev));
 
-        backend = ggml_backend_dev_init(dev, NULL);
+        // backend = ggml_backend_dev_init(dev, NULL);
+	backend = ggml_backend_metal_init();
         if (ggml_backend_is_cpu(backend)) {
             const int ncores_logical = std::thread::hardware_concurrency();
             ggml_backend_cpu_set_n_threads(backend, std::min(ncores_logical, (ncores_logical + 4)/2));
